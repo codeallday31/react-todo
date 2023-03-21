@@ -1,5 +1,5 @@
 import { useReducer, useRef } from 'react'
-import { FiEdit, FiRefreshCw, FiTrash, FiX } from 'react-icons/fi'
+import { FiEdit, FiRefreshCw, FiTrash, FiX, FiPlus } from 'react-icons/fi'
 
 const TODO = {
     VALUE_CHANGE: 'value_change',
@@ -7,6 +7,7 @@ const TODO = {
     REMOVE_TODO: 'remove_todo',
     UPDATE_TODO: 'update_todo',
     TOGGLE_EDIT_MODE: 'toggle_edit_mode',
+    TOGGLE_FINISHED: 'toggle_finished_todo',
 }
 
 const todoReducer = (state, action) => {
@@ -36,9 +37,8 @@ const todoReducer = (state, action) => {
                             ...todo,
                             isEditMode: !todo.isEditMode,
                         }
-                    } else {
-                        return todo
                     }
+                    return todo
                 }),
             }
         case TODO.UPDATE_TODO:
@@ -51,9 +51,21 @@ const todoReducer = (state, action) => {
                             name: action.payload.name,
                             isEditMode: false,
                         }
-                    } else {
-                        return todo
                     }
+                    return todo
+                }),
+            }
+        case TODO.TOGGLE_FINISHED:
+            return {
+                ...state,
+                todos: state.todos.map(todo => {
+                    if (todo.id === action.payload.id) {
+                        return {
+                            ...todo,
+                            isCompleted: !todo.isCompleted,
+                        }
+                    }
+                    return todo
                 }),
             }
         default:
@@ -66,7 +78,15 @@ function App() {
         todo: '',
         todos: [],
     })
+
     const editedTodo = useRef()
+
+    const finishedTasksCount = state.todos.reduce((total, todo) => {
+        if (todo.isCompleted) {
+            total += 1
+        }
+        return total
+    }, 0)
 
     const handleSubmit = event => {
         event.preventDefault()
@@ -76,6 +96,7 @@ function App() {
                 id: Math.floor(Math.random() * Date.now()).toString(16),
                 name: state.todo,
                 isEditMode: false,
+                isCompleted: false,
             },
         })
     }
@@ -111,10 +132,23 @@ function App() {
         })
     }
 
+    const handleCompletedTodo = todoId => {
+        dispatch({
+            type: TODO.TOGGLE_FINISHED,
+            payload: {
+                id: todoId,
+            },
+        })
+    }
+
     const renderedTodos = state.todos.map(todo => {
         return (
-            <div key={todo.id} className='bg-blue-400 mt-3 p-2 rounded-lg text-white'>
-                <div className='flex items-center justify-between gap-2'>
+            <div
+                key={todo.id}
+                className='bg-blue-400 mt-3 p-2 rounded-lg text-white cursor-pointer'
+                onClick={() => handleCompletedTodo(todo.id)}
+            >
+                <div className='flex items-center justify-between gap-2 relative'>
                     {todo.isEditMode ? (
                         <input
                             defaultValue={todo.name}
@@ -123,30 +157,11 @@ function App() {
                             className='focus:outline-none focus:ring-blue-500 focus:ring-2 ring-1 ring-blue-400 p-2 rounded-sm w-96 transition duration-200 text-black'
                         />
                     ) : (
-                        <span className='block'> {todo.name} </span>
+                        <span>{todo.name}</span>
                     )}
-                    <div className='flex gap-3'>
-                        <button
-                            className='flex items-center border p-1 bg-indigo-300 rounded-md'
-                            onClick={() =>
-                                todo.isEditMode
-                                    ? handleUpdateTodo(todo.id)
-                                    : handleEditTodo(todo.id)
-                            }
-                        >
-                            {todo.isEditMode ? <FiRefreshCw /> : <FiEdit />}
-                        </button>
-                        <button
-                            className='flex items-center border p-1 bg-indigo-300 rounded-md'
-                            onClick={() =>
-                                todo.isEditMode
-                                    ? handleEditTodo(todo.id)
-                                    : handleRemoveTodo(todo.id)
-                            }
-                        >
-                            {todo.isEditMode ? <FiX /> : <FiTrash />}
-                        </button>
-                    </div>
+                    {todo.isCompleted && (
+                        <div className='absolute text-black w-full bg-black rounded-sm shadow-sm p-[1.5px]'></div>
+                    )}
                 </div>
             </div>
         )
@@ -154,28 +169,39 @@ function App() {
 
     return (
         <>
-            <div className='mt-16 text-center'>
-                <div className='py-4'>
+            <div className='mt-16'>
+                <div className='py-4 text-center'>
                     <h1 className='text-4xl uppercase font-semibold'>Be more productive today</h1>
                 </div>
                 <div className='mx-auto max-w-lg p-3'>
                     <div className='bg-blue-400/40 p-4 rounded-xl shadow-lg'>
                         <form onSubmit={handleSubmit}>
-                            <div className='flex items-center justify-between gap-2'>
+                            <div className='flex justify-between gap-2'>
                                 <div className='flex-1'>
                                     <input
                                         value={state.todo}
                                         onChange={handleChange}
                                         type='text'
-                                        className='focus:outline-none focus:ring-blue-500 focus:ring-2 ring-1 ring-blue-400 p-2 rounded-sm w-full transition duration-200'
+                                        className='focus:outline-none focus:ring-blue-400 focus:ring-2 ring-1 p-2 ring-blue-400 rounded-md w-full transition duration-200'
                                     />
                                 </div>
-                                <button className='ring-1 p-2 text-white bg-blue-400 rounded-md'>
-                                    <span className='flex items-center gap-2'>Add Todo</span>
+                                <button className='ring-1 px-3 text-white bg-blue-400 rounded-md'>
+                                    <span className='flex items-center gap-2 '>
+                                        <FiPlus />
+                                    </span>
                                 </button>
                             </div>
                         </form>
                         <div>{renderedTodos}</div>
+                        <div className='mt-4 flex items-center justify-between'>
+                            <h3 className='font-medium uppercase'>
+                                {state.todos.length === 0
+                                    ? 'You are too lazy'
+                                    : `${finishedTasksCount} of ${state.todos.length} Task${
+                                          state.todos.length >= 2 ? 's' : ''
+                                      } completed`}
+                            </h3>
+                        </div>
                     </div>
                 </div>
             </div>
