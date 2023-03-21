@@ -114,7 +114,7 @@ function App() {
     const renderedTodos = state.todos.map(todo => {
         return (
             <div key={todo.id} className='bg-blue-400 mt-3 p-2 rounded-lg text-white'>
-                <div className='flex items-center justify-between'>
+                <div className='flex items-center justify-between gap-2'>
                     {todo.isEditMode ? (
                         <input
                             defaultValue={todo.name}
@@ -154,27 +154,29 @@ function App() {
 
     return (
         <>
-            <div className='mx-auto mt-16 max-w-lg'>
-                <div className='text-center py-4'>
+            <div className='mt-16 text-center'>
+                <div className='py-4'>
                     <h1 className='text-4xl uppercase font-semibold'>Be more productive today</h1>
                 </div>
-                <div className='bg-blue-400/40 p-4 rounded-xl shadow-lg'>
-                    <form onSubmit={handleSubmit}>
-                        <div className='flex items-center justify-between'>
-                            <div className='flex-1'>
-                                <input
-                                    value={state.todo}
-                                    onChange={handleChange}
-                                    type='text'
-                                    className='focus:outline-none focus:ring-blue-500 focus:ring-2 ring-1 ring-blue-400 p-2 rounded-sm w-96 transition duration-200'
-                                />
+                <div className='mx-auto max-w-lg p-3'>
+                    <div className='bg-blue-400/40 p-4 rounded-xl shadow-lg'>
+                        <form onSubmit={handleSubmit}>
+                            <div className='flex items-center justify-between gap-2'>
+                                <div className='flex-1'>
+                                    <input
+                                        value={state.todo}
+                                        onChange={handleChange}
+                                        type='text'
+                                        className='focus:outline-none focus:ring-blue-500 focus:ring-2 ring-1 ring-blue-400 p-2 rounded-sm w-full transition duration-200'
+                                    />
+                                </div>
+                                <button className='ring-1 p-2 text-white bg-blue-400 rounded-md'>
+                                    <span className='flex items-center gap-2'>Add Todo</span>
+                                </button>
                             </div>
-                            <button className='ring-1 p-2 text-white bg-blue-400 rounded-md'>
-                                <span className='flex items-center gap-2'>Add Todo</span>
-                            </button>
-                        </div>
-                    </form>
-                    <div>{renderedTodos}</div>
+                        </form>
+                        <div>{renderedTodos}</div>
+                    </div>
                 </div>
             </div>
         </>
