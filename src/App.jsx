@@ -1,12 +1,13 @@
 import { useReducer, useRef } from 'react'
 import { FiEdit, FiRefreshCw, FiTrash, FiX, FiPlus } from 'react-icons/fi'
+import Button from './components/Button'
 
 const TODO = {
     VALUE_CHANGE: 'value_change',
     ADD_TODO: 'add_todos',
     REMOVE_TODO: 'remove_todo',
     UPDATE_TODO: 'update_todo',
-    TOGGLE_EDIT_MODE: 'toggle_edit_mode',
+    EDIT_TODO: 'edit_todo',
     TOGGLE_FINISHED: 'toggle_finished_todo',
 }
 
@@ -28,14 +29,14 @@ const todoReducer = (state, action) => {
                 ...state,
                 todos: state.todos.filter(todo => todo.id !== action.payload),
             }
-        case TODO.TOGGLE_EDIT_MODE:
+        case TODO.EDIT_TODO:
             return {
                 ...state,
                 todos: state.todos.map(todo => {
                     if (todo.id === action.payload) {
                         return {
                             ...todo,
-                            isEditMode: !todo.isEditMode,
+                            isEditMode: true,
                         }
                     }
                     return todo
@@ -117,7 +118,7 @@ function App() {
 
     const handleEditTodo = todoId => {
         dispatch({
-            type: TODO.TOGGLE_EDIT_MODE,
+            type: TODO.EDIT_TODO,
             payload: todoId,
         })
     }
@@ -143,12 +144,8 @@ function App() {
 
     const renderedTodos = state.todos.map(todo => {
         return (
-            <div
-                key={todo.id}
-                className='bg-blue-400 mt-3 p-2 rounded-lg text-white cursor-pointer'
-                onClick={() => handleCompletedTodo(todo.id)}
-            >
-                <div className='flex items-center justify-between gap-2 relative'>
+            <div key={todo.id} className='bg-blue-400 mt-3 p-2 rounded-lg text-white'>
+                <div className='flex justify-between gap-2 relative'>
                     {todo.isEditMode ? (
                         <input
                             defaultValue={todo.name}
@@ -157,11 +154,33 @@ function App() {
                             className='focus:outline-none focus:ring-blue-500 focus:ring-2 ring-1 ring-blue-400 p-2 rounded-sm w-96 transition duration-200 text-black'
                         />
                     ) : (
-                        <span>{todo.name}</span>
+                        <div
+                            className='cursor-pointer relative flex py-2 items-center'
+                            onClick={() => handleCompletedTodo(todo.id)}
+                        >
+                            <span>{todo.name}</span>
+                            {todo.isCompleted && (
+                                <div className='absolute text-black w-full bg-black rounded-sm shadow-sm p-[1.5px]'></div>
+                            )}
+                        </div>
                     )}
-                    {todo.isCompleted && (
-                        <div className='absolute text-black w-full bg-black rounded-sm shadow-sm p-[1.5px]'></div>
-                    )}
+                    <div className='flex gap-3'>
+                        {!todo.isCompleted && (
+                            <Button
+                                onClick={() =>
+                                    todo.isEditMode
+                                        ? handleUpdateTodo(todo.id)
+                                        : handleEditTodo(todo.id)
+                                }
+                            >
+                                {todo.isEditMode ? <FiX /> : <FiEdit />}
+                            </Button>
+                        )}
+
+                        <Button onClick={() => handleRemoveTodo(todo.id)}>
+                            <FiTrash />
+                        </Button>
+                    </div>
                 </div>
             </div>
         )
